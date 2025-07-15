@@ -1,14 +1,29 @@
-import gptLogo from './assets/chatgpt.svg'
-import addBtn from "./assets/add-30.png"
-import msgIcon from "./assets/message.svg"
-import home from "./assets/home.svg"
-import saved from "./assets/bookmark.svg"
-import rocket from "./assets/rocket.svg"
+import React, { useState } from 'react';
+import gptLogo from './assets/chatgpt.svg';
+import addBtn from './assets/add-30.png';
+import msgIcon from './assets/message.svg';
+import home from './assets/home.svg';
+import saved from './assets/bookmark.svg';
+import rocket from './assets/rocket.svg';
 
 function App() {
+  const [messages, setMessages] = useState([
+    { from: 'bot', text: 'Hi there! How can I help you today?' },
+  ]);
+  const [input, setInput] = useState('');
+
+  const sendMessage = () => {
+    if (!input.trim()) return;
+    setMessages([...messages, { from: 'user', text: input }]);
+    setInput('');
+    // 🧠 TODO: hook into GPT API and update:
+    // setMessages(prev => [...prev, { from: 'bot', text: apiReply }]);
+  };
+
   return (
-    <>
-      <div className="w-64 h-screen bg-gray-900 text-white flex flex-col justify-between p-4">
+    <div className="flex h-screen overflow-hidden">
+      {/* Sidebar */}
+      <div className="w-64 bg-gray-900 text-white flex flex-col justify-between p-4">
         <div>
           <div className="flex items-center gap-2 mb-6">
             <img src={gptLogo} alt="logo" className="h-6 w-6" />
@@ -26,7 +41,7 @@ function App() {
               What is Programming?
             </button>
             <button className="w-full text-left bg-gray-800 p-2 rounded hover:bg-gray-700">
-              <img src="msgIcon" alt="" className="inline-block w-4 h-4 mr-2" />
+              <img src={msgIcon} alt="" className="inline-block w-4 h-4 mr-2" />
               How to use an API?
             </button>
           </div>
@@ -47,8 +62,10 @@ function App() {
           </div>
         </div>
       </div>
+
+      {/* Chat Area */}
       <div className="flex-1 bg-gray-100 flex flex-col">
-        
+        {/* Messages */}
         <div className="flex-1 p-4 overflow-y-auto space-y-4">
           {messages.map((msg, i) => (
             <div
@@ -69,7 +86,9 @@ function App() {
             </div>
           ))}
         </div>
-         <div className="p-4 bg-white flex items-center">
+
+        {/* Input */}
+        <div className="p-4 bg-white flex items-center">
           <input
             type="text"
             className="flex-1 border border-gray-300 rounded px-4 py-2 mr-2 focus:outline-none focus:ring focus:border-blue-300"
@@ -87,7 +106,6 @@ function App() {
         </div>
       </div>
     </div>
-    </>
   );
 }
 
