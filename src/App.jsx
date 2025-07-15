@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import gptLogo from './assets/chatgptLogo.svg';
 import addBtn from './assets/add-30.png';
 import msgIcon from './assets/message.svg';
@@ -8,63 +8,62 @@ import rocket from './assets/rocket.svg';
 import send from './assets/send.svg';
 
 export default function App() {
-  const [messages, setMessages] = useState([
-    { from: 'bot', text: 'Hi there! How can I help you today?' },
-  ]);
+  const [messages, setMessages] = useState([]); // Start with empty chat
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const chatEndRef = useRef(null);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   const generateBotResponse = async (history) => {
-  const formattedHistory = history.map(({ from, text }) => ({
-    role: from === 'user' ? 'user' : 'model',
-    parts: [{ text }],
-  }));
+    const formattedHistory = history.map(({ from, text }) => ({
+      role: from === 'user' ? 'user' : 'model',
+      parts: [{ text }],
+    }));
 
-  // Add ?key=... to URL
-  const endpoint = `${import.meta.env.VITE_API_URL}?key=${import.meta.env.VITE_API_KEY}`;
+    const endpoint = `${import.meta.env.VITE_API_URL}?key=${import.meta.env.VITE_API_KEY}`;
 
-  try {
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        contents: formattedHistory,
-      }),
-    });
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: formattedHistory,
+        }),
+      });
 
-    const data = await response.json();
+      const data = await response.json();
 
-    if (!response.ok) {
-      throw new Error(data.error?.message || 'Something went wrong');
+      if (!response.ok) {
+        throw new Error(data.error?.message || 'Something went wrong');
+      }
+
+      console.log('Gemini response:', data);
+
+      // Gemini returns `candidates` array
+      const botReply = data.candidates?.[0]?.content?.parts?.[0]?.text || 'No response.';
+      return botReply;
+    } catch (error) {
+      console.error('Error:', error);
+      return 'Error: Failed to get response from API.';
     }
-
-    console.log('Gemini response:', data);
-
-    // Gemini returns `candidates` array
-    const botReply = data.candidates?.[0]?.content?.parts?.[0]?.text || 'No response.';
-    return botReply;
-  } catch (error) {
-    console.error('Error:', error);
-    return 'Error: Failed to get response from API.';
-  }
-};
-
+  };
 
   const sendMessage = async () => {
     if (!input.trim()) return;
 
-    // Add user message to chat
     setMessages((prev) => [...prev, { from: 'user', text: input }]);
     setLoading(true);
 
     try {
-      // Include all messages (including the new user message)
       const allMessages = [...messages, { from: 'user', text: input }];
       const botResponse = await generateBotResponse(allMessages);
       setMessages((prev) => [...prev, { from: 'bot', text: botResponse }]);
-    } catch (err) {
+    } catch {
       setMessages((prev) => [...prev, { from: 'bot', text: 'Failed to get response.' }]);
     } finally {
       setLoading(false);
@@ -84,9 +83,7 @@ export default function App() {
 
           <button
             className="w-full flex items-center justify-center bg-gray-700 hover:bg-gray-600 p-2 rounded mb-4"
-            onClick={() =>
-              setMessages([{ from: 'bot', text: 'Hi there! How can I help you today?' }])
-            }
+            onClick={() => setMessages([])}
           >
             <img src={addBtn} alt="" className="w-4 h-4 mr-2" />
             New Chat
@@ -147,6 +144,7 @@ export default function App() {
               )}
             </div>
           ))}
+
           {loading && (
             <div className="flex justify-start w-full">
               <div className="flex items-start max-w-md">
@@ -157,6 +155,7 @@ export default function App() {
               </div>
             </div>
           )}
+          <div ref={chatEndRef} />
         </div>
 
         {/* Input area */}
