@@ -47,6 +47,46 @@ function App() {
           </div>
         </div>
       </div>
+      <div className="flex-1 bg-gray-100 flex flex-col">
+        
+        <div className="flex-1 p-4 overflow-y-auto space-y-4">
+          {messages.map((msg, i) => (
+            <div
+              key={i}
+              className={`flex ${
+                msg.from === 'user' ? 'justify-end' : 'justify-start'
+              }`}
+            >
+              <div
+                className={`max-w-xs px-4 py-2 rounded-lg ${
+                  msg.from === 'user'
+                    ? 'bg-blue-500 text-white rounded-br-none'
+                    : 'bg-white text-gray-900 rounded-bl-none'
+                }`}
+              >
+                {msg.text}
+              </div>
+            </div>
+          ))}
+        </div>
+         <div className="p-4 bg-white flex items-center">
+          <input
+            type="text"
+            className="flex-1 border border-gray-300 rounded px-4 py-2 mr-2 focus:outline-none focus:ring focus:border-blue-300"
+            placeholder="Type your message..."
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && sendMessage()}
+          />
+          <button
+            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+            onClick={sendMessage}
+          >
+            Send
+          </button>
+        </div>
+      </div>
+    </div>
     </>
   );
 }
